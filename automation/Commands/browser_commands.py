@@ -7,6 +7,7 @@ import random
 import sys
 import time
 import traceback
+import pdb
 from glob import glob
 from hashlib import md5
 
@@ -405,3 +406,28 @@ def recursive_dump_page_source(visit_id, driver, manager_params, suffix=''):
 
     with gzip.GzipFile(outfile, 'wb') as f:
         f.write(json.dumps(page_source).encode('utf-8'))
+
+
+def fill_config(webdriver, text):
+    """ types the name into the input field """
+    SELECTOR_FOR_FINGERPRINT_INPUT = "#txtConfDesc"
+    ele = webdriver.find_element_by_css_selector(SELECTOR_FOR_FINGERPRINT_INPUT)
+    SELECTOR_FOR_FINGERPRINT_BUTTON = "#btnFP"
+    ele2 = webdriver.find_element_by_css_selector(SELECTOR_FOR_FINGERPRINT_BUTTON)
+    action = ActionChains(webdriver)
+    action.move_to_element(ele).click(ele).send_keys(text).move_to_element(ele2).click(ele2).perform()
+    time.sleep(1)
+    alert = webdriver.switch_to_alert()
+    alert.dismiss()
+    time.sleep(1)
+    return
+
+def take_fingerprint(webdriver):
+    """ clicks the button in order to start fingerprinting """
+    print("Starting clicking")
+    SELECTOR_FOR_FINGERPRINT_BUTTON = "#btnFP"
+    ele = webdriver.find_element_by_css_selector(SELECTOR_FOR_FINGERPRINT_BUTTON)
+    print(ele)
+    action = ActionChains(webdriver)
+    action.move_to_element(ele).click(ele).perform()
+    print("done with clicking")
