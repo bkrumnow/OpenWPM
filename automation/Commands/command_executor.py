@@ -71,3 +71,9 @@ def execute_command(command, webdriver, browser_settings, browser_params,
                     "manager_params": manager_params,
                     "extension_socket": extension_socket}
         command[1](*command[2], **arg_dict)
+
+    if command[0] == 'FILL_CONFIG':
+        browser_commands.fill_config(webdriver=webdriver, text=command[1])
+
+    if command[0] == 'TAKE_FINGERPRINT':
+        browser_commands.take_fingerprint(webdriver=webdriver)

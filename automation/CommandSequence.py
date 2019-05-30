@@ -163,4 +163,22 @@ class CommandSequence:
             raise CommandExecutionError("No get or browse request preceding "
                                         "the dump page source command", self)
         command = ('RUN_CUSTOM_FUNCTION', function_handle, func_args)
+        self.commands_with_timeout.append((command, timeout))  
+        
+    def fill_config(self, text, timeout=20):
+        """ Types the name into the input field """
+        self.total_timeout += timeout
+        if not self.contains_get_or_browse:
+            raise CommandExecutionError("No get or browse request preceding "
+                                        "the fill config command", self)
+        command = ('FILL_CONFIG', text)
+        self.commands_with_timeout.append((command, timeout))
+
+    def take_fingerprint(self, timeout=20):
+        """ clicks the button in order to start fingerprinting """
+        self.total_timeout += timeout
+        if not self.contains_get_or_browse:
+            raise CommandExecutionError("No get or browse request preceding "
+                                        "the take fingerprint command", self)
+        command = ('TAKE_FINGERPRINT')
         self.commands_with_timeout.append((command, timeout))
