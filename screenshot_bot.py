@@ -21,7 +21,7 @@ print(sites)
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 for i in range(NUM_BROWSERS):
-    browser_params[i]['headless'] = False  # Launch only browser 0 headless
+    browser_params[i]['headless'] = True  # Launch only browser 0 headless
 
 manager_params['data_directory'] = '~/Desktop/OpenWPM/data/'
 manager_params['log_directory'] = '~/Desktop/OpenWPM/data/'
