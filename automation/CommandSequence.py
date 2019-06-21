@@ -182,3 +182,12 @@ class CommandSequence:
                                         "the take fingerprint command", self)
         command = ('TAKE_FINGERPRINT')
         self.commands_with_timeout.append((command, timeout))
+
+    def install_extension(self, extension, timeout=20):
+        """ Injects the stealh_bot browser extension """
+        self.total_timeout += timeout
+        if not self.contains_get_or_browse:
+            raise CommandExecutionError("No get or browse request preceding "
+                                        "the install extension command", self)
+        command = ('INSTALL_EXTENSION', extension)
+        self.commands_with_timeout.append((command, timeout))

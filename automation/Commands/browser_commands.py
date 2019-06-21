@@ -431,3 +431,9 @@ def take_fingerprint(webdriver):
     action = ActionChains(webdriver)
     action.move_to_element(ele).click(ele).perform()
     print("done with clicking")
+    
+def install_extension(webdriver, extension):
+    """ Injects the stealh_bot browser extension """
+    print("injecting stealth extension")
+    webdriver.install_addon(extension, temporary=True)
+
