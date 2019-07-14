@@ -16,8 +16,8 @@ config = "FX_nightly_67.0.1_64-bit_headful_mac_os_x_webdriver_v0.24.0"
 
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
-manager_params['data_directory'] = './Restults/'
-manager_params['log_directory'] = './Restults/'
+manager_params['data_directory'] = './Results/'
+manager_params['log_directory'] = './Results/'
 
 browser_params[0]['headless'] = False  # Launch only browser 0 headless
 

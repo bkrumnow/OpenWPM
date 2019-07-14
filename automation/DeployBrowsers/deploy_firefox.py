@@ -162,10 +162,13 @@ def deploy_firefox(status_queue, browser_params, manager_params,
 
         # Install extension
         ext_loc = os.path.join(root_dir, '../Extension/firefox/openwpm.xpi')
-        stealth_bot = os.path.join(root_dir, '../Extension/firefox/stealth_bot.xpi')
         ext_loc = os.path.normpath(ext_loc)
         driver.install_addon(ext_loc, temporary=True)
-        driver.install_addon(stealth_bot, temporary=True)
+        
+        if browser_params["stealth_enabled"]
+            stealth_bot = os.path.join(root_dir, '../Extension/firefox/stealth_bot.xpi')
+            driver.install_addon(stealth_bot, temporary=True)
+        
         logger.debug("BROWSER %i: OpenWPM Firefox extension loaded"
                      % browser_params['crawl_id'])
 
