@@ -20,7 +20,7 @@ manager_params['data_directory'] = './Results/'
 manager_params['log_directory'] = './Results/'
 
 browser_params[0]['headless'] = False  # Launch only browser 0 headless
-#browser_params[0]['stealth_enabled'] = True  # Launch only browser 0 headless
+#browser_params[0]['stealth_enabled'] = True  # Install stealth extension for webdriver
 
 manager = TaskManager.TaskManager(manager_params, browser_params)
 
