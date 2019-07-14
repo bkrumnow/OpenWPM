@@ -165,7 +165,7 @@ def deploy_firefox(status_queue, browser_params, manager_params,
         ext_loc = os.path.normpath(ext_loc)
         driver.install_addon(ext_loc, temporary=True)
         
-        if browser_params["stealth_enabled"]
+        if browser_params["stealth_enabled"]:
             stealth_bot = os.path.join(root_dir, '../Extension/firefox/stealth_bot.xpi')
             driver.install_addon(stealth_bot, temporary=True)
         
