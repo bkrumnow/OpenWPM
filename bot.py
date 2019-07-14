@@ -9,8 +9,6 @@ import pdb
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-EXTENSION_FOLDER = os.path.join(__location__,'automation/Extension')
-EXTENSION = os.path.join(EXTENSION_FOLDER, "stealth_bot.xpi")
 NUM_BROWSERS = 1
 
 site = 'http://localhost:8080/'
@@ -27,7 +25,6 @@ manager = TaskManager.TaskManager(manager_params, browser_params)
 
 command_sequence = CommandSequence.CommandSequence(site)
 command_sequence.get(sleep=30)
-#command_sequence.install_extension(EXTENSION)
 command_sequence.fill_config(config, 5)
 command_sequence.take_fingerprint(15)
 
