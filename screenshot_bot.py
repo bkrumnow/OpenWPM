@@ -10,7 +10,7 @@ import pdb
 #NUM_BROWSERS = 8
 #fileReader = csv.reader(open('./sites/bot_detectors.csv'), delimiter=',')
 
-NUM_BROWSERS = 4
+NUM_BROWSERS = 1
 fileReader = csv.reader(open('./sites/test_set.csv'), delimiter=',')
 sites = []
 for (index, site) in fileReader:
