@@ -24,24 +24,6 @@ fields = [
 ]
 PQ_SCHEMAS['flash_cookies'] = pa.schema(fields)
 
-# profile_cookies
-fields = [
-    pa.field('crawl_id', pa.int32(), nullable=False),
-    pa.field('visit_id', pa.int64(), nullable=False),
-    pa.field('instance_id', pa.int32(), nullable=False),
-    pa.field('baseDomain', pa.string()),
-    pa.field('name', pa.string()),
-    pa.field('value', pa.string()),
-    pa.field('host', pa.string()),
-    pa.field('path', pa.string()),
-    pa.field('expiry', pa.int32()),
-    pa.field('lastAccessed', pa.int32()),
-    pa.field('creationTime', pa.int32()),
-    pa.field('isSecure', pa.bool_()),
-    pa.field('isHttpOnly', pa.bool_())
-]
-PQ_SCHEMAS['profile_cookies'] = pa.schema(fields)
-
 # crawl_history
 fields = [
     pa.field('crawl_id', pa.int32(), nullable=False),
@@ -83,6 +65,7 @@ fields = [
     pa.field('req_call_stack', pa.string()),
     pa.field('resource_type', pa.string(), nullable=False),
     pa.field('post_body', pa.string()),
+    pa.field('post_body_raw', pa.string()),
     pa.field('time_stamp', pa.string(), nullable=False),
 ]
 PQ_SCHEMAS['http_requests'] = pa.schema(fields)

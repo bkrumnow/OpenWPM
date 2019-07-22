@@ -114,18 +114,10 @@ available [below](#output-format).
     * NOTE: Flash cookies are shared across browsers, so this instrumentation
         will not correctly attribute flash cookie changes if more than 1
         browser is running on the machine.
-* Cookie Access (*Experimental* -- Needs tests)
+* Cookie Access
     * Set `browser_params['cookie_instrument'] = True`
     * Data is saved to the `javascript_cookies` table.
     * Will record cookies set both by Javascript and via HTTP Responses
-* Cookie Access (Alternate)
-    * Recorded by scanning the `cookies.sqlite` database in the Firefox profile
-        directory.
-    * Should contain both cookies added by Javascript and by HTTP Responses
-    * To enable: call the `CommandSequence::dump_profile_cookies` command after
-        a page visit. Note that calling this command will close the current tab
-        before recording the cookie changes.
-    * Data is saved to the `profile_cookies` table
 * Log Files
     * Stored in the directory specified by `manager_params['data_directory']`.
     * Name specified by `manager_params['log_file']`.
@@ -311,6 +303,11 @@ left out of this section.
 Browser Profile Support
 -----------------------
 
+**WARNING: Stateful crawls are currently not supported. Attempts to run
+stateful crawls will throw `NotImplementedError`s. The work required to
+restore support is tracked in
+[this project](https://github.com/mozilla/OpenWPM/projects/2).**
+
 ### Stateful vs Stateless crawls
 
 By default OpenWPM performs a "stateful" crawl, in that it keeps a consistent
@@ -329,7 +326,7 @@ manager = TaskManager.TaskManager(manager_params, browser_params)
 for site in sites:
     command_sequence = CommandSequence.CommandSequence(site, reset=True)
     command_sequence.get(sleep=30, timeout=60)
-    command_sequence.dump_profile_cookies(120)
+    command_sequence.dump_flash_cookies(120)
     manager.execute_command_sequence(command_sequence)
 ```
 
@@ -387,9 +384,10 @@ dependencies, which can be installed with `install-dev.sh`.
 ### Editing instrumentation
 
 The instrumentation extension is included in `/automation/Extension/firefox/`.
-Any edits within this directory will require the extension to be re-built to produce a new `openwpm.xpi` with your updates. You can use `build_extension.sh` to do this.
-
-The actual instrumentation code is maintained in https://github.com/mozilla/openwpm-webext-instrumentation. To test changes to the instrumentation code, change the dependency in [package.json](https://github.com/mozilla/OpenWPM/blob/master/automation/Extension/firefox/package.json) to point to your local clone (e.g. `"openwpm-webext-instrumentation": "file:/path/to/openwpm-webext-instrumentation"`). Make sure to run `npm run build` in the `openwpm-webext-instrumentation` repo to pick up changes.
+The instrumentation itself (used by the above extension) is included in 
+`/automation/Extension/webext-instrumentation/`.
+Any edits within these directories will require the extension to be re-built to produce 
+a new `openwpm.xpi` with your updates. You can use `build_extension.sh` to do this.
 
 ### Debugging the platform
 
@@ -425,11 +423,11 @@ Once installed, execute `py.test -vv` in the test directory to run all tests.
 
 We've added an installation file to make it easier to run tests and develop on
 Mac OSX. To install the dependencies on Mac OSX, run `install-mac-dev.sh`
-instead of `install.sh` and `install-dev.sh` in [the official getting started 
+instead of `install.sh` and `install-dev.sh` in [the official getting started
 instructions](https://github.com/mozilla/OpenWPM/wiki/Setting-Up-OpenWPM).
 
-This will install Python packages in a local Python 3 virtualenv, 
-download the latest Unbranded Firefox Release into the current folder, 
+This will install Python packages in a local Python 3 virtualenv,
+download the latest Unbranded Firefox Release into the current folder,
 move geckodriver next to the Firefox binary and install development dependencies.
 For the OpenWPM to be aware of which Firefox installation to run, set the
 FIREFOX_BINARY environment variable before running any commands.
@@ -514,11 +512,9 @@ Docker service.
 __Step 2:__ to build the image, run the following command from a terminal
 within the root OpenWPM directory:
 
+```
     docker build -f Dockerfile -t openwpm .
-
-After building the above, you may optionally build a docker image for OpenWPM development:
-
-    docker build -f Dockerfile-dev -t openwpm-dev .
+```
 
 After a few minutes, the container is ready to use.
 
@@ -526,9 +522,18 @@ After a few minutes, the container is ready to use.
 
 You can run the demo measurement from inside the container, as follows:
 
-    mkdir -p docker-volume && docker run -v $PWD/docker-volume:/home/user/Desktop \
+First of all, you need to give the container permissions on your local
+X-server. You can do this by running: `xhost +local:docker`
+
+Then you can run the demo script using:
+
+```
+    mkdir -p docker-volume && docker run -v $PWD/docker-volume:/root/Desktop \
     -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
     -it openwpm python /opt/OpenWPM/demo.py
+```
+
+Instead of _python_, _python3_ can be used here as well.
 
 This command uses _bind-mounts_ to share scripts and output between the
 container and host, as explained below (note the paths in the command assume
@@ -538,7 +543,7 @@ it's being run from the root OpenWPM directory):
     `python /opt/OpenWPM/demo.py` command.
 
 - `-v` binds a directory on the host (`$PWD/docker-volume`) to a
-    directory in the container (`/home/user`). Binding allows the script's
+    directory in the container (`/root`). Binding allows the script's
     output to be saved on the host (`./docker-volume/Desktop`), and also allows
     you to pass inputs to the docker container (if necessary). We first create
     the `docker-volume` direction (if it doesn't exist), as docker will
@@ -552,6 +557,10 @@ it's being run from the root OpenWPM directory):
     running headless crawls you can remove the following options:
     `-e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix`.
 
+Alternatively, it is possible to run jobs as the user _openwpm_ in the container
+too, but this might cause problems with none headless browers. It is therefore
+only recommended for headless crawls.
+
 Instruction on how to run Docker GUI applications in Mac OSX are available
 [here](https://stackoverflow.com/questions/37523980/running-gui-apps-on-docker-container-with-a-macbookpro-host).
 Given properly installed prerequisites (including a reboot), the helper script
@@ -560,7 +569,7 @@ working with Docker in Mac OSX.
 
 To open a bash session within the environment:
 
-    ./run-on-osx-via-docker.sh # 
+    ./run-on-osx-via-docker.sh /bin/bash
 
 Or, run commands directly:
 

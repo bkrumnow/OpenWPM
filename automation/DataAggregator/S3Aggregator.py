@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+import base64
 import gzip
 import hashlib
 import json
@@ -53,6 +54,7 @@ class S3Listener(BaseListener):
     a parquet dataset. The schema for this dataset is given in
     ./parquet_schema.py
     """
+
     def __init__(
             self, status_queue, shutdown_queue, manager_params, instance_id):
         self.dir = manager_params['s3_directory']
@@ -61,9 +63,10 @@ class S3Listener(BaseListener):
         self._batches = dict()  # maps table_name to a list of batches
         self._instance_id = instance_id
         self._bucket = manager_params['s3_bucket']
+        self._s3_content_cache = set()  # cache of filenames already uploaded
         self._s3 = boto3.client('s3')
         self._s3_resource = boto3.resource('s3')
-        self._fs = s3fs.S3FileSystem()
+        self._fs = s3fs.S3FileSystem(session=boto3.DEFAULT_SESSION)
         self._s3_bucket_uri = 's3://%s/%s/visits/%%s' % (
             self._bucket, self.dir)
         super(S3Listener, self).__init__(
@@ -120,6 +123,13 @@ class S3Listener(BaseListener):
 
     def _exists_on_s3(self, filename):
         """Check if `filename` already exists on S3"""
+        # Check local filename cache
+        if filename.split('/', 1)[1] in self._s3_content_cache:
+            self.logger.debug(
+                "File `%s` found in content cache." % filename)
+            return True
+
+        # Check S3
         try:
             self._s3_resource.Object(self._bucket, filename).load()
         except ClientError as e:
@@ -127,6 +137,10 @@ class S3Listener(BaseListener):
                 return False
             else:
                 raise
+
+        # Add filename to local cache to avoid remote lookups on next request
+        # We strip the bucket name as its the same for all files
+        self._s3_content_cache.add(filename.split('/', 1)[1])
         return True
 
     def _write_str_to_s3(self, string, filename,
@@ -151,6 +165,10 @@ class S3Listener(BaseListener):
             self._s3.upload_fileobj(out_f, self._bucket, filename)
             self.logger.debug(
                 "Successfully uploaded file `%s` to S3." % filename)
+            # Cache the filenames that are already on S3
+            # We strip the bucket name as its the same for all files
+            if skip_if_exists:
+                self._s3_content_cache.add(filename.split('/', 1)[1])
         except Exception as e:
             self.logger.error(
                 "Exception while uploading %s\n%s\n%s" % (
@@ -248,12 +266,15 @@ class S3Listener(BaseListener):
                     RECORD_TYPE_CONTENT, record[0])
             )
         content, content_hash = record[1]
+        content = base64.b64decode(content)
         fname = "%s/%s/%s.gz" % (self.dir, CONTENT_DIRECTORY, content_hash)
         self._write_str_to_s3(content, fname)
 
     def drain_queue(self):
         """Process remaining records in queue and sync final files to S3"""
         super(S3Listener, self).drain_queue()
+        for visit_id in self.browser_map.values():
+            self._create_batch(visit_id)
         self._send_to_s3(force=True)
 
 
@@ -275,6 +296,7 @@ class S3Aggregator(BaseAggregator):
     columns up to 32 bits. Currently, `instance_id` is the only partition
     column, and thus can be no larger than 32 bits.
     """
+
     def __init__(self, manager_params, browser_params):
         super(S3Aggregator, self).__init__(manager_params, browser_params)
         self.dir = manager_params['s3_directory']
@@ -321,9 +343,14 @@ class S3Aggregator(BaseAggregator):
             raise
 
     def get_next_visit_id(self):
-        """Generate visit id as randomly generated 64bit UUIDs
+        """Generate visit id as randomly generated 53bit UUIDs.
+
+        Parquet can support integers up to 64 bits, but Javascript can only
+        represent integers up to 53 bits:
+        https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
+        Thus, we cap these values at 53 bits.
         """
-        return (uuid.uuid4().int & (1 << 64) - 1) - 2**63
+        return (uuid.uuid4().int & (1 << 53) - 1) - 2**52
 
     def get_next_crawl_id(self):
         """Generate crawl id as randomly generated 32bit UUIDs

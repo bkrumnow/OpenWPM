@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+import base64
 import json
 import os
 import sqlite3
@@ -50,6 +51,7 @@ def listener_process_runner(
 
 class LocalListener(BaseListener):
     """Listener that interfaces with a local SQLite database."""
+
     def __init__(
             self, status_queue, shutdown_queue, manager_params, ldb_enabled):
         db_path = manager_params['database_name']
@@ -129,8 +131,7 @@ class LocalListener(BaseListener):
                 "Attempted to save page content but the LevelDB content "
                 "database is not enabled.")
         content, content_hash = record[1]
-        if isinstance(content, six.text_type):
-            content = str(content).encode('utf-8')
+        content = base64.b64decode(content)
         content_hash = str(content_hash).encode('ascii')
         if self.ldb.get(content_hash) is not None:
             return
@@ -180,6 +181,7 @@ class LocalAggregator(BaseAggregator):
 
     If content saving is enabled, we write page content to a LevelDB database.
     """
+
     def __init__(self, manager_params, browser_params):
         super(LocalAggregator, self).__init__(manager_params, browser_params)
         db_path = self.manager_params['database_name']

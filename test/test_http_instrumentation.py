@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 
+import base64
 import json
 import os
 from hashlib import sha256
 from time import sleep
 
+import pytest
 from six.moves import range
 from six.moves.urllib.parse import urlparse
 
@@ -31,7 +33,7 @@ HTTP_REQUESTS = {
         u'undefined',
         u'undefined',
         0, 0, 1, None, None, u'main_frame',
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_favicon.ico',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -39,7 +41,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'image',
-     ),
+    ),
     # (
     #     u'http://localtest.me:8000/test_pages/shared/test_favicon.ico',
     #     u'undefined',
@@ -55,7 +57,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'image',
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_script_2.js',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -63,7 +65,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'script',
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_script.js',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -71,7 +73,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'script',
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_image.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -79,7 +81,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'image',
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -87,7 +89,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 1, 0, None, None, u'sub_frame',
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_style.css',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -95,7 +97,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'stylesheet',
-     ),
+    ),
     (
         u'http://localtest.me:8000/404.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -103,7 +105,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/frame1.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -111,7 +113,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/frame2.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -119,7 +121,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/req1.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -127,7 +129,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/req2.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -135,7 +137,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/req3.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -143,7 +145,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_image_2.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -151,7 +153,7 @@ HTTP_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'image'
-     ),
+    ),
 }
 
 # format: (request_url, referrer, location)
@@ -222,7 +224,7 @@ HTTP_CACHED_REQUESTS = {
         u'undefined',
         u'undefined',
         0, 0, 1, None, None, u'main_frame'
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_script_2.js',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -230,7 +232,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'script'
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_script.js',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -238,7 +240,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'script',
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -246,7 +248,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 1, 0, None, None, u'sub_frame'
-     ),
+    ),
     (
         u'http://localtest.me:8000/test_pages/shared/test_style.css',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -254,7 +256,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'stylesheet'
-     ),
+    ),
     (
         u'http://localtest.me:8000/404.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -262,7 +264,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/frame1.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -270,7 +272,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/frame2.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -278,7 +280,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page_2.html',
         0, 0, 0, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/req1.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -294,7 +296,7 @@ HTTP_CACHED_REQUESTS = {
         u'http://localtest.me:8000',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
         0, 0, 1, None, None, u'image'
-     ),
+    ),
     (
         u'http://localtest.me:8000/MAGIC_REDIRECT/req3.png',
         u'http://localtest.me:8000/test_pages/http_test_page.html',
@@ -611,8 +613,7 @@ class TestHTTPInstrument(OpenWPMTest):
             with open(os.path.join(BASE_PATH, path[1:]), 'rb') as f:
                 content = f.read()
             chash = sha256(content).hexdigest()
-            # TODO: webext instrumentation doesn't save the content_hash yet.
-            # assert chash == row['content_hash']
+            assert chash == row['content_hash']
             disk_content[chash] = content
 
         ldb_content = dict()
@@ -636,6 +637,9 @@ class TestPOSTInstrument(OpenWPMTest):
         r'["name surname+"],'\
         r'"multiline_text":["line1\r\n\r\nline2 line2_word2"]}'
     post_data_multiline_json = json.loads(post_data_multiline)
+    post_data_multiline_raw = 'email=test@example.com\r\n'\
+        'username=name surname+\r\nmultiline_text=line1\r\n\r\n'\
+        'line2 line2_word2\r\n'
 
     def get_config(self, data_dir=""):
         manager_params, browser_params = self.get_test_config(data_dir)
@@ -647,10 +651,14 @@ class TestPOSTInstrument(OpenWPMTest):
         return db_utils.query_db(db, "SELECT * FROM http_requests\
                                        WHERE method = 'POST'")
 
-    def get_post_request_body_from_db(self, db):
+    def get_post_request_body_from_db(self, db, raw=False):
         """Return the body of the first POST request in crawl db."""
         posts = self.get_post_requests_from_db(db)
-        return posts[0]['post_body']
+        if raw:
+            return base64.b64decode(
+                json.loads(posts[0]['post_body_raw'])[0][1])
+        else:
+            return posts[0]['post_body']
 
     def test_record_post_data_x_www_form_urlencoded(self):
         encoding_type = "application/x-www-form-urlencoded"
@@ -661,8 +669,8 @@ class TestPOSTInstrument(OpenWPMTest):
     def test_record_post_data_text_plain(self):
         encoding_type = "text/plain"
         db = self.visit('/post_request.html?encoding_type=' + encoding_type)
-        post_body = self.get_post_request_body_from_db(db)
-        assert json.loads(post_body) == self.post_data_multiline_json
+        post_body = self.get_post_request_body_from_db(db, True)
+        assert post_body.decode('utf8') == self.post_data_multiline_raw
 
     def test_record_post_data_multipart_formdata(self):
         encoding_type = "multipart/form-data"
@@ -686,15 +694,16 @@ class TestPOSTInstrument(OpenWPMTest):
         """Test AJAX payloads that are not in the key=value form."""
         post_format = "noKeyValue"
         db = self.visit("/post_request_ajax.html?format=" + post_format)
-        post_body = self.get_post_request_body_from_db(db)
-        assert post_body == "test@example.com + name surname"
+        post_body = self.get_post_request_body_from_db(db, True)
+        assert post_body.decode('utf8') == "test@example.com + name surname"
 
     def test_record_post_data_ajax_no_key_value_base64_encoded(self):
         """Test Base64 encoded AJAX payloads (no key=value form)."""
         post_format = "noKeyValueBase64"
         db = self.visit("/post_request_ajax.html?format=" + post_format)
-        post_body = self.get_post_request_body_from_db(db)
-        assert post_body == "dGVzdEBleGFtcGxlLmNvbSArIG5hbWUgc3VybmFtZQ=="
+        post_body = self.get_post_request_body_from_db(db, True)
+        assert post_body.decode('utf8') == (
+            "dGVzdEBleGFtcGxlLmNvbSArIG5hbWUgc3VybmFtZQ==")
 
     def test_record_post_formdata(self):
         post_format = "formData"
@@ -705,12 +714,13 @@ class TestPOSTInstrument(OpenWPMTest):
     def test_record_binary_post_data(self):
         post_format = "binary"
         db = self.visit("/post_request_ajax.html?format=" + post_format)
-        post_body = self.get_post_request_body_from_db(db)
+        post_body = self.get_post_request_body_from_db(db, True)
         # Binary strings get put into the database as-if they were latin-1.
         import six
-        assert six.binary_type(
-            bytearray(range(100))) == post_body.encode('latin-1')
+        assert six.binary_type(bytearray(range(100))) == post_body
 
+    @pytest.mark.skip(reason="Firefox is currently not able to return the "
+                      "file content for an upload, only the filename")
     def test_record_file_upload(self):
         """Test that we correctly capture the uploaded file contents.
 
@@ -719,6 +729,14 @@ class TestPOSTInstrument(OpenWPMTest):
 
         File uploads are not expected in the crawl data, but we make sure we
         correctly parse the POST data in this very common scenario.
+
+        Firefox is currently not able to return the FormData with the file
+        contents, currently only the filenames are returned. This is due to
+        a limitation in the current API implementation:
+
+        https://searchfox.org/mozilla-central/rev/b3b401254229f0a26f7ee625ef5f09c6c31e3949/toolkit/components/extensions/webrequest/WebRequestUpload.jsm#339
+
+        Therefore, the test is currently skipped.
         """
         img_file_path = os.path.abspath("test_pages/shared/test_image.png")
         css_file_path = os.path.abspath("test_pages/shared/test_style.css")
