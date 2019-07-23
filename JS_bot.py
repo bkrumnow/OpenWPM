@@ -34,7 +34,7 @@ for i, site in enumerate(sites):
     command_sequence = CommandSequence.CommandSequence("http://" + site, True)
     command_sequence.get(sleep=20, timeout=60)
     command_sequence.save_screenshot(site, 5)
-    command_sequence.dump_page_source("source", 10)
+    manager.dump_profile(os.path.expanduser('./Results/dump'), close_webdriver=True)
     manager.execute_command_sequence(command_sequence, index=None)
     #del command_sequence
 manager.close()
