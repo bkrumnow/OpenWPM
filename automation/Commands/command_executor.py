@@ -71,7 +71,11 @@ def execute_command(command, webdriver, browser_settings, browser_params,
 
     if command[0] == 'TAKE_FINGERPRINT':
         browser_commands.take_fingerprint(webdriver=webdriver)
+
+    if command[0] == 'EXECUTE_TEMPLATE_DIALOG':
+        browser_commands.execute_template_dialog(webdriver=webdriver, text=command[1])
         
     if command[0] == 'INSTALL_EXTENSION':
         browser_commands.install_extension(webdriver=webdriver, extension=command[1])
+    
         

@@ -171,10 +171,19 @@ class CommandSequence:
         self.total_timeout += timeout
         if not self.contains_get_or_browse:
             raise CommandExecutionError("No get or browse request preceding "
-                                        "the take fingerprint command", self)
+                                        "the take execution of template dialog", self)
         command = ('TAKE_FINGERPRINT')
         self.commands_with_timeout.append((command, timeout))
-
+        
+    def execute_template_dialog(self, text, timeout=15):
+        """ clicks the button in order to start fingerprinting """
+        self.total_timeout += timeout
+        if not self.contains_get_or_browse:
+            raise CommandExecutionError("No get or browse request preceding "
+                                        "the take fingerprint command", self)
+        command = ('EXECUTE_TEMPLATE_DIALOG', text)
+        self.commands_with_timeout.append((command, timeout))
+    
     def install_extension(self, extension, timeout=20):
         """ Injects the stealh_bot browser extension """
         self.total_timeout += timeout

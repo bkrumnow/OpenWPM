@@ -401,6 +401,20 @@ def take_fingerprint(webdriver):
     action.move_to_element(ele).click(ele).perform()
     print("done with clicking")
     
+def execute_template_dialog(webdriver, text, timeout=15):
+    """ clicks the button in order to start fingerprinting """
+    el = webdriver.find_element_by_css_selector("input")
+    action = ActionChains(webdriver)
+    action.move_to_element(el).click(el).perform()
+    time.sleep(2)
+    alert = webdriver.switch_to_alert()
+    print("perform send keys")
+    alert.send_keys(text)
+    time.sleep(2)
+    print("start")
+    alert.accept()
+    time.sleep(20)
+    
 def install_extension(webdriver, extension):
     """ Injects the stealh_bot browser extension """
     print("injecting stealth extension")
