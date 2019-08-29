@@ -1,3 +1,8 @@
+"""
+Install template attack server from: https://github.com/IAIK/jstemplate
+
+"""
+
 from automation import TaskManager, CommandSequence
 import tempfile
 import time
