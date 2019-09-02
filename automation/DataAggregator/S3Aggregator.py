@@ -4,6 +4,7 @@ import base64
 import gzip
 import hashlib
 import json
+import time
 import uuid
 from collections import defaultdict
 
@@ -13,7 +14,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import s3fs
 import six
-from botocore.exceptions import ClientError
+from botocore.client import Config
+from botocore.exceptions import ClientError, EndpointConnectionError
 from pyarrow.filesystem import S3FSWrapper  # noqa
 from six.moves import queue
 
@@ -23,6 +25,14 @@ from .parquet_schema import PQ_SCHEMAS
 CACHE_SIZE = 500
 SITE_VISITS_INDEX = '_site_visits_index'
 CONTENT_DIRECTORY = 'content'
+CONFIG_DIR = 'config'
+BATCH_COMMIT_TIMEOUT = 30  # commit a batch if no new records for N seconds
+S3_CONFIG_KWARGS = {
+    'retries': {
+        'max_attempts': 20
+    }
+}
+S3_CONFIG = Config(**S3_CONFIG_KWARGS)
 
 
 def listener_process_runner(
@@ -34,6 +44,7 @@ def listener_process_runner(
 
     while True:
         listener.update_status_queue()
+        listener.save_batch_if_past_timeout()
         if listener.should_shutdown():
             break
         try:
@@ -64,11 +75,15 @@ class S3Listener(BaseListener):
         self._instance_id = instance_id
         self._bucket = manager_params['s3_bucket']
         self._s3_content_cache = set()  # cache of filenames already uploaded
-        self._s3 = boto3.client('s3')
-        self._s3_resource = boto3.resource('s3')
-        self._fs = s3fs.S3FileSystem(session=boto3.DEFAULT_SESSION)
+        self._s3 = boto3.client('s3', config=S3_CONFIG)
+        self._s3_resource = boto3.resource('s3', config=S3_CONFIG)
+        self._fs = s3fs.S3FileSystem(
+            session=boto3.DEFAULT_SESSION,
+            config_kwargs=S3_CONFIG_KWARGS
+        )
         self._s3_bucket_uri = 's3://%s/%s/visits/%%s' % (
             self._bucket, self.dir)
+        self._last_record_received = None  # time last record was received
         super(S3Listener, self).__init__(
             status_queue, shutdown_queue, manager_params)
 
@@ -91,6 +106,9 @@ class S3Listener(BaseListener):
 
     def _create_batch(self, visit_id):
         """Create record batches for all records from `visit_id`"""
+        if visit_id not in self._records:
+            # The batch for this `visit_id` was already created, skip
+            return
         for table_name, data in self._records[visit_id].items():
             if table_name not in self._batches:
                 self._batches[table_name] = list()
@@ -104,10 +122,10 @@ class S3Listener(BaseListener):
                     "Successfully created batch for table %s and "
                     "visit_id %s" % (table_name, visit_id)
                 )
-            except pa.lib.ArrowInvalid as e:
+            except pa.lib.ArrowInvalid:
                 self.logger.error(
-                    "Error while creating record batch:\n%s\n%s\n%s\n"
-                    % (table_name, type(e), e)
+                    "Error while creating record batch for table %s\n"
+                    % table_name, exc_info=True
                 )
                 pass
 
@@ -137,6 +155,12 @@ class S3Listener(BaseListener):
                 return False
             else:
                 raise
+        except EndpointConnectionError:
+            self.logger.error(
+                "Exception while checking if file exists %s" % filename,
+                exc_info=True
+            )
+            return False
 
         # Add filename to local cache to avoid remote lookups on next request
         # We strip the bucket name as its the same for all files
@@ -169,10 +193,9 @@ class S3Listener(BaseListener):
             # We strip the bucket name as its the same for all files
             if skip_if_exists:
                 self._s3_content_cache.add(filename.split('/', 1)[1])
-        except Exception as e:
+        except Exception:
             self.logger.error(
-                "Exception while uploading %s\n%s\n%s" % (
-                    filename, type(e), e)
+                "Exception while uploading %s" % filename, exc_info=True
             )
             pass
 
@@ -191,6 +214,8 @@ class S3Listener(BaseListener):
                 )
                 self._write_str_to_s3(out_str, fname)
             else:
+                if len(batches) == 0:
+                    continue
                 try:
                     table = pa.Table.from_batches(batches)
                     pq.write_to_dataset(
@@ -201,20 +226,37 @@ class S3Listener(BaseListener):
                         compression='snappy',
                         flavor='spark'
                     )
-                except pa.lib.ArrowInvalid as e:
+                except (pa.lib.ArrowInvalid, EndpointConnectionError):
                     self.logger.error(
-                        "Error while sending record:\n%s\n%s\n%s\n"
-                        % (table_name, type(e), e)
+                        "Error while sending records for: %s" % table_name,
+                        exc_info=True
                     )
                     pass
             self._batches[table_name] = list()
+
+    def save_batch_if_past_timeout(self):
+        """Save the current batch of records if no new data has been received.
+
+        If we aren't receiving new data for this batch we commit early
+        regardless of the current batch size."""
+        if self._last_record_received is None:
+            return
+        if time.time() - self._last_record_received < BATCH_COMMIT_TIMEOUT:
+            return
+        self.logger.debug(
+            "Saving current record batches to S3 since no new data has "
+            "been written for %d seconds." %
+            (time.time() - self._last_record_received)
+        )
+        self.drain_queue()
+        self._last_record_received = None
 
     def process_record(self, record):
         """Add `record` to database"""
         if len(record) != 2:
             self.logger.error("Query is not the correct length")
             return
-
+        self._last_record_received = time.time()
         table, data = record
         if table == "create_table":  # drop these statements
             return
@@ -321,8 +363,8 @@ class S3Aggregator(BaseAggregator):
         """Save configuration details for this crawl to the database"""
 
         # Save config keyed by task id
-        fname = "%s/instance-%s_configuration.json" % (
-            self.dir, self._instance_id)
+        fname = "%s/%s/instance-%s_configuration.json" % (
+            self.dir, CONFIG_DIR, self._instance_id)
 
         # Config parameters for update
         out = dict()
