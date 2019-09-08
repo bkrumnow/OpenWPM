@@ -17,7 +17,7 @@ __location__ = os.path.realpath(
 NUM_BROWSERS = 1
 
 site = 'http://localhost:8080/'
-config = "OpenWPM_Nightly_68.0_Mac_OS_X_headful__geckodriver_v0.24.0"
+config = "OpenWPM_Intrumentation_Nightly_68.0_Mac_OS_X_headful__geckodriver_v0.24.0"
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = './Results/'

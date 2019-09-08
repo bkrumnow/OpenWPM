@@ -12,14 +12,14 @@ __location__ = os.path.realpath(
 NUM_BROWSERS = 1
 
 site = 'http://localhost:8080/'
-config = "FX_nightly_67.0.1_64-bit_headful_mac_os_x_webdriver_v0.24.0"
+config = "OpenWPM_Intrumentation_Nightly_68.0_Mac_OS_X_headful__geckodriver_v0.24.0"
 
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = './Results/'
 manager_params['log_directory'] = './Results/'
 
-INSTRUMENTATION = False
+INSTRUMENTATION = True
 if INSTRUMENTATION:
     manager_params['cookie_instrument'] = True
     manager_params['js_instrument'] = True
@@ -33,7 +33,7 @@ browser_params[0]['headless'] = False  # Launch only browser 0 headless
 manager = TaskManager.TaskManager(manager_params, browser_params)
 
 command_sequence = CommandSequence.CommandSequence(site)
-command_sequence.get(sleep=30)
+command_sequence.get(sleep=10)
 command_sequence.fill_config(config, 5)
 command_sequence.take_fingerprint(15)
 
