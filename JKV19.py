@@ -19,6 +19,14 @@ manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = './Results/'
 manager_params['log_directory'] = './Results/'
 
+INSTRUMENTATION = False
+if INSTRUMENTATION:
+    manager_params['cookie_instrument'] = True
+    manager_params['js_instrument'] = True
+    manager_params['http_instrument'] = True
+    manager_params['navigation_instrument'] = True
+    manager_params['save_content'] = True
+
 browser_params[0]['headless'] = False  # Launch only browser 0 headless
 #browser_params[0]['stealth_enabled'] = True  # Install stealth extension for webdriver
 
