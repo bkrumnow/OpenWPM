@@ -17,20 +17,23 @@ __location__ = os.path.realpath(
 NUM_BROWSERS = 1
 
 site = 'http://localhost:8080/'
-config = "OpenWPM_Intrumentation_Nightly_68.0_Mac_OS_X_headful__geckodriver_v0.24.0"
+config = "Test_intrument"
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = './Results/'
 manager_params['log_directory'] = './Results/'
 
 #Setting up full instrumentation
-INSTRUMENTATION = False
+INSTRUMENTATION = True
 if INSTRUMENTATION:
-    manager_params['cookie_instrument'] = True
-    manager_params['js_instrument'] = True
-    manager_params['http_instrument'] = True
-    manager_params['navigation_instrument'] = True
-    manager_params['save_content'] = True
+    print("Turing on instrumentation")
+    #browser_params[0]['cookie_instrument'] = True
+    browser_params[0]['js_instrument'] = True
+    #browser_params[0]['http_instrument'] = True
+    #browser_params[0]['navigation_instrument'] = True
+    #browser_params[0]['save_content'] = True
+else:
+    print("Instrumentation is off")
 
 #    "js_instrument_modules": "fingerprinting",
 
@@ -41,7 +44,7 @@ manager = TaskManager.TaskManager(manager_params, browser_params)
 
 command_sequence = CommandSequence.CommandSequence(site)
 command_sequence.get(sleep=5, timeout=60)
-command_sequence.execute_template_dialog(config, timeout=60)
+command_sequence.execute_template_dialog(config, timeout=120)
 
 manager.execute_command_sequence(command_sequence, index='**')
 manager.close()

@@ -410,7 +410,7 @@ def execute_template_dialog(webdriver, text, timeout=15):
     time.sleep(2)
     print("start")
     alert.accept()
-    time.sleep(20)
+    time.sleep(80)
     
 def install_extension(webdriver, extension):
     """ Injects the stealh_bot browser extension """
