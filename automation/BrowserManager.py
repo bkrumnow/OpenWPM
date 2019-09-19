@@ -40,7 +40,7 @@ class Browser:
 
     def __init__(self, manager_params, browser_params):
         # Constants
-        self._SPAWN_TIMEOUT = 120  # seconds
+        self._SPAWN_TIMEOUT = 600  # seconds
         self._UNSUCCESSFUL_SPAWN_LIMIT = 4
 
         # manager parameters
