@@ -26,12 +26,12 @@ manager_params['log_directory'] = './Results/'
 #Setting up full instrumentation
 INSTRUMENTATION = True
 if INSTRUMENTATION:
-    print("Turing on instrumentation")
-    #browser_params[0]['cookie_instrument'] = True
+    print("Turning on instrumentation")
+    browser_params[0]['cookie_instrument'] = True
     browser_params[0]['js_instrument'] = True
-    #browser_params[0]['http_instrument'] = True
-    #browser_params[0]['navigation_instrument'] = True
-    #browser_params[0]['save_content'] = True
+    browser_params[0]['http_instrument'] = True
+    browser_params[0]['navigation_instrument'] = True
+    browser_params[0]['save_content'] = True
 else:
     print("Instrumentation is off")
 

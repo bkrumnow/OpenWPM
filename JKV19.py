@@ -12,20 +12,20 @@ __location__ = os.path.realpath(
 NUM_BROWSERS = 1
 
 site = 'http://localhost:8080/'
-config = "OpenWPM_Intrumentation_Nightly_68.0_Mac_OS_X_headful__geckodriver_v0.24.0"
+config = "OpenWPM_Nightly_68.0_Mac_OS_X_headful__geckodriver_v0.24.0"
 
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = './Results/'
 manager_params['log_directory'] = './Results/'
 
-INSTRUMENTATION = True
+INSTRUMENTATION = False
 if INSTRUMENTATION:
-    manager_params['cookie_instrument'] = True
-    manager_params['js_instrument'] = True
-    manager_params['http_instrument'] = True
-    manager_params['navigation_instrument'] = True
-    manager_params['save_content'] = True
+    browser_params['cookie_instrument'] = True
+    browser_params['js_instrument'] = True
+    browser_params['http_instrument'] = True
+    browser_params['navigation_instrument'] = True
+    browser_params['save_content'] = True
 
 browser_params[0]['headless'] = False  # Launch only browser 0 headless
 #browser_params[0]['stealth_enabled'] = True  # Install stealth extension for webdriver

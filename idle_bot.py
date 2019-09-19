@@ -12,7 +12,11 @@ site = 'http://localhost'
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = '~/Desktop/idle/'
 manager_params['log_directory'] = '~/Desktop//idle/'
-manager_params['js_instrument'] = True
+browser_params[0]['cookie_instrument'] = True
+browser_params[0]['js_instrument'] = True
+browser_params[0]['http_instrument'] = True
+browser_params[0]['navigation_instrument'] = True
+browser_params[0]['save_content'] = True
 
 browser_params[0]['headless'] = False  # Launch only browser 0 headless
 
