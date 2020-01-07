@@ -411,6 +411,26 @@ def execute_template_dialog(webdriver, text, timeout=15):
     print("start")
     alert.accept()
     time.sleep(80)
+
+def perform_behavioural_biometric_test(webdriver, timeout=30):
+    """ Clicks on two elements twice to check the x/y positions of clicks """
+    button = webdriver.find_element_by_css_selector("button")
+    input = webdriver.find_element_by_css_selector("input")
+    action = ActionChains(webdriver)
+
+    action.move_to_element(button).click(button).perform()
+    action.reset_actions()
+    time.sleep(1)
+    action.move_to_element(input).click(input).perform()
+    action.reset_actions()
+    time.sleep(1)
+    action.move_to_element(button).click(button).perform()
+    action.reset_actions()
+    time.sleep(1)
+    action.move_to_element(input).click(input).perform()
+
+    time.sleep(60)
+
     
 def install_extension(webdriver, extension):
     """ Injects the stealh_bot browser extension """

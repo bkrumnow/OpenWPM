@@ -8,6 +8,7 @@ def execute_command(command, webdriver, browser_settings, browser_params,
     """Executes BrowserManager commands
     commands are of form (COMMAND, ARG0, ARG1, ...)
     """
+    print("command: {}".format(command[0]))
     if command[0] == 'GET':
         browser_commands.get_website(
             url=command[1], sleep=command[2], visit_id=command[3],
@@ -77,5 +78,7 @@ def execute_command(command, webdriver, browser_settings, browser_params,
         
     if command[0] == 'INSTALL_EXTENSION':
         browser_commands.install_extension(webdriver=webdriver, extension=command[1])
-    
+
+    if command[0] == 'PERFORM_BEHAVIOURAL_BIOMETRIC_TEST':
+        browser_commands.perform_behavioural_biometric_test(webdriver=webdriver)
         

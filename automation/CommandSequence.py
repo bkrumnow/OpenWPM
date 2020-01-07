@@ -176,7 +176,7 @@ class CommandSequence:
         if not self.contains_get_or_browse:
             raise CommandExecutionError("No get or browse request preceding "
                                         "the take execution of template dialog", self)
-        command = ('TAKE_FINGERPRINT')
+        command = ('TAKE_FINGERPRINT',)
         self.commands_with_timeout.append((command, timeout))
         
     def execute_template_dialog(self, text, timeout=15):
@@ -196,3 +196,13 @@ class CommandSequence:
                                         "the install extension command", self)
         command = ('INSTALL_EXTENSION', extension)
         self.commands_with_timeout.append((command, timeout))
+        
+    def perform_behavioural_biometric_test(self, timeout=80):
+        """ clicks the button in order to start fingerprinting """
+        self.total_timeout += timeout
+        if not self.contains_get_or_browse:
+            raise CommandExecutionError("No get or browse request preceding "
+                                        "the take execution of template dialog", self)
+        command = ('PERFORM_BEHAVIOURAL_BIOMETRIC_TEST',)
+        self.commands_with_timeout.append((command, timeout))
+    
