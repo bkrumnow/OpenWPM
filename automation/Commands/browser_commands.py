@@ -419,16 +419,14 @@ def perform_behavioural_biometric_test(webdriver, timeout=30):
     action = ActionChains(webdriver)
 
     action.move_to_element(button).click(button).perform()
+    time.sleep(1)
+    action.move_to_element(input).perform()
     action.reset_actions()
     time.sleep(1)
+    time.sleep(8)
     action.move_to_element(input).click(input).perform()
-    action.reset_actions()
     time.sleep(1)
-    action.move_to_element(button).click(button).perform()
-    action.reset_actions()
-    time.sleep(1)
-    action.move_to_element(input).click(input).perform()
-
+    action.send_keys("bot detection").perform()
     time.sleep(60)
 
     

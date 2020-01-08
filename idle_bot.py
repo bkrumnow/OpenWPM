@@ -11,7 +11,7 @@ site = 'http://localhost:8080/deliver.html'
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = '~/Desktop/idle/'
-manager_params['log_directory'] = '~/Desktop//idle/'
+manager_params['log_directory'] = '~/Desktop/idle/'
 browser_params[0]['cookie_instrument'] = False
 browser_params[0]['js_instrument'] = True
 browser_params[0]['http_instrument'] = False

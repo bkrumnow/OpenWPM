@@ -11,7 +11,7 @@ __location__ = os.path.realpath(
 
 NUM_BROWSERS = 1
 
-site = 'http://localhost:8080/biometrics.html'
+site = 'http://localhost:8080/biometry.html'
 
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 manager_params['data_directory'] = './Results/'
